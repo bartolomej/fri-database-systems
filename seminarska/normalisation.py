@@ -1,16 +1,7 @@
 import pyodbc
+from db import connect_db
 
-conString = (
-    r'DRIVER={MySQL ODBC 8.0 ANSI Driver};'
-    r'DATABASE=faks;'
-    r'UID=root;'
-    r'PWD=rootPass;'
-    r'CHARSET=utf8mb4;'
-)
-c = pyodbc.connect(conString)
-c.setdecoding(pyodbc.SQL_CHAR, encoding='utf-8')
-c.setdecoding(pyodbc.SQL_WCHAR, encoding='utf-8')
-c.setencoding(encoding='utf-8')
+c = connect_db()
 
 cur1 = c.cursor()
 cur2 = c.cursor()
@@ -18,9 +9,11 @@ cur2 = c.cursor()
 cur1.execute("CREATE TABLE IF NOT EXISTS pleme ("
              "tid INTEGER PRIMARY KEY, "
              "tribe VARCHAR(30))")
+
 cur1.execute("CREATE TABLE IF NOT EXISTS aliansa ("
              "aid INTEGER PRIMARY KEY, "
              "alliance VARCHAR(30))")
+
 cur1.execute("CREATE TABLE IF NOT EXISTS igralec ("
              "pid INTEGER PRIMARY KEY, "
              "player VARCHAR(30), "
@@ -28,6 +21,7 @@ cur1.execute("CREATE TABLE IF NOT EXISTS igralec ("
              "aid INTEGER,"
              "FOREIGN KEY (tid) REFERENCES pleme(tid),"
              "FOREIGN KEY (aid) REFERENCES aliansa(aid))")
+
 cur1.execute("CREATE TABLE IF NOT EXISTS naselje ("
              "vid INTEGER PRIMARY KEY,"
              "village VARCHAR(30),"
@@ -40,7 +34,7 @@ cur1.execute("CREATE TABLE IF NOT EXISTS naselje ("
              "CONSTRAINT y CHECK (y >= -250 AND y <= 250))")
 c.commit()
 
-cur2.execute("SELECT * FROM x_world LIMIT 100")
+cur2.execute("SELECT * FROM x_world")
 rows = cur2.fetchall()
 
 id_plemena_map = {
@@ -58,8 +52,11 @@ def exec_insert(sql):
     try:
         cur2.execute(sql)
     except pyodbc.IntegrityError as e:
+        # TODO: handle cases when error is not because of duplicate rows
         print(e)
         pass
+    except pyodbc.Error as e:
+        print("ERROR: " + str(e))
 
 
 for row in rows:
@@ -69,8 +66,8 @@ for row in rows:
     exec_insert("INSERT INTO igralec VALUES ({}, '{}', {}, {})".format(pid, player, tid, aid))
     exec_insert("INSERT INTO naselje VALUES ({}, '{}', {}, {}, {}, {})".format(vid, village, x, y, population, pid))
 
-cur2.execute("DELETE FROM aliansa WHERE aid = 0")
 cur2.execute("UPDATE igralec SET aid = null WHERE aid = 0;")
+cur2.execute("DELETE FROM aliansa WHERE aid = 0")
 
 cur2.commit()
 

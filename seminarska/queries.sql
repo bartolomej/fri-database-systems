@@ -67,8 +67,52 @@ where n.vid = 100;
 
 #  2.j
 # TODO: should I use mysql functions / whatever ?
-select * from igralec i inner join naselje n on i.pid = n.pid where i.player = 'Sirena' order by n.population desc;
+select *
+from igralec i
+         inner join naselje n on i.pid = n.pid
+where i.player = 'Sirena'
+order by n.population desc;
 
 
 # 3.a
-select * from aliansa a where a.alliance = 'HORDA';
+start transaction;
+# ustvarimo novo alianso, izmislimo si nov aid (123)
+insert into aliansa (aid, alliance)
+values (123, 'HORDA-CAR');
+# ustrezno posodobimo fk zahtevanih igralcev
+update igralec i
+set i.aid = 123
+WHERE i.aid IN (
+    select a.aid
+    from aliansa a
+    where a.alliance = 'HORDA'
+       or a.alliance = 'CAR'
+);
+commit;
+
+# 3.b
+delimiter //
+CREATE TRIGGER before_player_insert
+    BEFORE INSERT
+    ON igralec
+    FOR EACH ROW
+BEGIN
+    DECLARE player_count INTEGER;
+    SET player_count = (
+        select count(i.pid) as n
+        from aliansa a
+                 inner join igralec i on a.aid = i.aid
+        WHERE a.aid = NEW.aid
+        group by a.aid
+    );
+    IF player_count >= 60 THEN
+        SIGNAL SQLSTATE '45000' SET message_text = 'Player count is limited to max 60 per alliance.';
+    END IF;
+end //
+delimiter ;
+# preverimo delovanje z spodnjim insertom (mora vrniti napako)
+select count(*)
+from aliansa a
+where a.aid = 27;
+INSERT INTO igralec (pid, player, tid, aid)
+VALUES (123, 'Test igralec', 7, 27);

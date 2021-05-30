@@ -1,5 +1,5 @@
 import pyodbc
-from db import connect_db
+from db import connect_db, exec_ignore_duplicate
 
 c = connect_db()
 
@@ -48,23 +48,12 @@ id_plemena_map = {
 }
 
 
-def exec_insert(sql):
-    try:
-        cur2.execute(sql)
-    except pyodbc.IntegrityError as e:
-        # TODO: handle cases when error is not because of duplicate rows
-        print(e)
-        pass
-    except pyodbc.Error as e:
-        print("ERROR: " + str(e))
-
-
 for row in rows:
     _, x, y, tid, vid, village, pid, player, aid, alliance, population = row
-    exec_insert("INSERT INTO pleme VALUES ({}, '{}')".format(tid, id_plemena_map[tid]))
-    exec_insert("INSERT INTO aliansa VALUES ({}, '{}')".format(aid, alliance))
-    exec_insert("INSERT INTO igralec VALUES ({}, '{}', {}, {})".format(pid, player, tid, aid))
-    exec_insert("INSERT INTO naselje VALUES ({}, '{}', {}, {}, {}, {})".format(vid, village, x, y, population, pid))
+    exec_ignore_duplicate(cur2, "INSERT INTO pleme VALUES ({}, '{}')".format(tid, id_plemena_map[tid]))
+    exec_ignore_duplicate(cur2, "INSERT INTO aliansa VALUES ({}, '{}')".format(aid, alliance))
+    exec_ignore_duplicate(cur2, "INSERT INTO igralec VALUES ({}, '{}', {}, {})".format(pid, player, tid, aid))
+    exec_ignore_duplicate(cur2, "INSERT INTO naselje VALUES ({}, '{}', {}, {}, {}, {})".format(vid, village, x, y, population, pid))
 
 cur2.execute("UPDATE igralec SET aid = null WHERE aid = 0;")
 cur2.execute("DELETE FROM aliansa WHERE aid = 0")

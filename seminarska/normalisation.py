@@ -1,4 +1,3 @@
-import pyodbc
 from db import connect_db, exec_ignore_duplicate
 
 c = connect_db()
@@ -37,7 +36,7 @@ c.commit()
 cur2.execute("SELECT * FROM x_world")
 rows = cur2.fetchall()
 
-id_plemena_map = {
+plemena = {
     1: "Rimljani",
     2: "Tevtoni",
     3: "Galci",
@@ -47,8 +46,8 @@ id_plemena_map = {
     7: "Egipcani"
 }
 
-for tid in id_plemena_map:
-    exec_ignore_duplicate(cur2, "INSERT INTO pleme VALUES ({}, '{}')".format(tid, id_plemena_map[tid]))
+for tid in plemena:
+    exec_ignore_duplicate(cur2, "INSERT INTO pleme VALUES ({}, '{}')".format(tid, plemena[tid]))
 
 for row in rows:
     _, x, y, tid, vid, village, pid, player, aid, alliance, population = row

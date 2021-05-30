@@ -33,12 +33,19 @@ order by stevilo desc
 limit 1;
 
 # 2.f
-select a.aid, count(i.pid) as stevilo
-from aliansa a
-         inner join igralec i on a.aid = i.aid
-group by a.aid
-order by stevilo desc
-limit 1;
+select count(res.aid)
+from (select a.aid, count(i.pid) as stevilo
+      from aliansa a
+               inner join igralec i on a.aid = i.aid
+      group by a.aid
+      having stevilo > (
+          select avg(tmp.count)
+          from (select count(i.pid) as count
+                from aliansa a
+                         inner join igralec i on a.aid = i.aid
+                group by a.aid) as tmp
+      )
+     ) as res;
 
 # 2.g
 # population.py
@@ -58,20 +65,18 @@ where (
       ) = 0;
 
 # 2.i
-# TODO: figure out a way to write this query
-select count(*)
+select a.aid,
+       a.alliance,
+       count(i.pid) / sum(n.population) as percentage
 from aliansa a
          inner join igralec i on a.aid = i.aid
          inner join naselje n on i.pid = n.pid
-where n.vid = 100;
+group by a.aid
+having percentage >= 0.03
+order by percentage desc;
 
 #  2.j
-# TODO: should I use mysql functions / whatever ?
-select *
-from igralec i
-         inner join naselje n on i.pid = n.pid
-where i.player = 'Sirena'
-order by n.population desc;
+# resitev se nahaja v rename.py
 
 
 # 3.a

@@ -47,10 +47,11 @@ id_plemena_map = {
     7: "Egipcani"
 }
 
+for tid in id_plemena_map:
+    exec_ignore_duplicate(cur2, "INSERT INTO pleme VALUES ({}, '{}')".format(tid, id_plemena_map[tid]))
 
 for row in rows:
     _, x, y, tid, vid, village, pid, player, aid, alliance, population = row
-    exec_ignore_duplicate(cur2, "INSERT INTO pleme VALUES ({}, '{}')".format(tid, id_plemena_map[tid]))
     exec_ignore_duplicate(cur2, "INSERT INTO aliansa VALUES ({}, '{}')".format(aid, alliance))
     exec_ignore_duplicate(cur2, "INSERT INTO igralec VALUES ({}, '{}', {}, {})".format(pid, player, tid, aid))
     exec_ignore_duplicate(cur2, "INSERT INTO naselje VALUES ({}, '{}', {}, {}, {}, {})".format(vid, village, x, y, population, pid))

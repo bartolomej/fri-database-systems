@@ -20,7 +20,7 @@ def init_tables():
 # igralno polje obsega (x,y) koordinate od (-400,-400) do (400,400)
 def calculate_population_density(tribe_name=None):
     cur = c.cursor()
-    step = 10
+    step = 20
     oid = 0
     tid = None
     if tribe_name:
@@ -59,3 +59,8 @@ if __name__ == '__main__':
     init_tables()
     calculate_population_density()
     calculate_population_density('Rimljani')
+    calculate_population_density('Tevtoni')
+    calculate_population_density('Galci')
+    calculate_population_density('Natarji')
+    calculate_population_density('Huni')
+    calculate_population_density('Egipcani')
